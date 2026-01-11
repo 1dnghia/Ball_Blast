@@ -10,27 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fe7ee76ad5ab054e8b2e03561cb3aba, type: 3}
-  m_Name: LevelData
+  m_Name: LevelData 2
   m_EditorClassIdentifier: 
   levelNumber: 1
   levelName: Level 1
-  movementType: 0
+  movementType: 1
   enableRotation: 1
   minSpawnInterval: 1
   maxSpawnInterval: 3
   maxObstaclesOnScreen: 5
-  obstacleSpawnInfos:
-  - typeName: Large
-    scale: 1
-    splitCount: 1
-    spawnWeight: 0
-  - typeName: Large 2
-    scale: 1
-    splitCount: 2
-    spawnWeight: 0
+  obstacleSpawnInfos: []
   splitScaleRatio: 0.6
   splitAngle: 45
-  splitForce: 1
+  splitForce: 3
   maxSplitCount: 2
   enableProgression: 0
   progressionInterval: 30
@@ -41,4 +33,4 @@ MonoBehaviour:
   targetScore: 100
   timeLimit: 0
   targetObstacleCount: 0
-  nextLevel: {fileID: 0}
+  nextLevel: {fileID: 11400000}

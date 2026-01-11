@@ -38,20 +38,40 @@ public class Obstacle : MonoBehaviour
     
     public void Initialize(string pool)
     {
-        Initialize(pool, 1f, -1);
+        Initialize(pool, 1f, -1, null);
     }
     
     public void Initialize(string pool, float scale, int hp = -1)
     {
-        InitializeWithSplitCount(pool, scale, 0, hp);
+        Initialize(pool, scale, hp, null);
+    }
+    
+    public void Initialize(string pool, float scale, int hp, PathData pathData)
+    {
+        InitializeWithSplitCount(pool, scale, 0, hp, pathData, 0f);
     }
     
     public void InitializeWithSplitCount(string pool, float scale, int splitCount, int hp = -1)
     {
+        InitializeWithSplitCount(pool, scale, splitCount, hp, null, 0f);
+    }
+    
+    public void InitializeWithSplitCount(string pool, float scale, int splitCount, int hp, PathData pathData)
+    {
+        InitializeWithSplitCount(pool, scale, splitCount, hp, pathData, 0f);
+    }
+    
+    public void InitializeWithSplitCount(string pool, float scale, int splitCount, int hp, PathData pathData, float pathStartDistance)
+    {
+        InitializeWithSplitCount(pool, scale, splitCount, hp, pathData, pathStartDistance, true);
+    }
+    
+    public void InitializeWithSplitCount(string pool, float scale, int splitCount, int hp, PathData pathData, float pathStartDistance, bool enableRotation)
+    {
         poolName = pool;
         
         health.Initialize(obstacleData, hp);
-        movement.Initialize(obstacleData);
+        movement.Initialize(obstacleData, pathData, pathStartDistance, enableRotation);
         splitter.Initialize(scale, splitCount, pool, obstacleData);
         
         EventBus.Publish(new ObstacleSpawnedEvent(gameObject, transform.position));

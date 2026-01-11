@@ -1,5 +1,14 @@
 using UnityEngine;
 
+/// <summary>
+/// Loại di chuyển của obstacle
+/// </summary>
+public enum MovementType
+{
+    Normal,  // Di chuyển bình thường (rơi từ trên xuống)
+    Path     // Di chuyển theo path được vẽ
+}
+
 [System.Serializable]
 public class ObstacleSpawnInfo
 {
@@ -25,6 +34,13 @@ public class LevelData : ScriptableObject
     [Header("Level Info")]
     public int levelNumber = 1;
     public string levelName = "Level 1";
+    
+    [Header("Movement Type")]
+    [Tooltip("Loại di chuyển: Normal = rơi tự do, Path = theo đường vẽ")]
+    public MovementType movementType = MovementType.Normal;
+    
+    [Tooltip("Cho phép obstacles tự xoay (chỉ áp dụng cho Normal movement)")]
+    public bool enableRotation = true;
     
     [Header("Spawn Settings")]
     [Tooltip("Thời gian spawn obstacle tối thiểu")]

@@ -8,7 +8,11 @@ public class ObstacleSpawner : MonoBehaviour
     [SerializeField] private LevelData levelData;
     [SerializeField] private bool autoStart = true;
     
+    [Header("Path Movement (for Path type levels)")]
+    [SerializeField] private PathData pathData;
+    
     private bool isSpawning = false;
+    private int currentPathObstacleCount = 0;
     private float currentMinInterval;
     private float currentMaxInterval;
     private float progressionTimer = 0f;
@@ -22,9 +26,27 @@ public class ObstacleSpawner : MonoBehaviour
             currentMaxInterval = levelData.maxSpawnInterval;
         }
         
+        // Subscribe event khi obstacle bị destroy
+        EventBus.Subscribe<ObstacleDestroyedEvent>(OnObstacleDestroyed);
+        
         if (autoStart)
         {
             StartSpawning();
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // Unsubscribe khi destroy
+        EventBus.Unsubscribe<ObstacleDestroyedEvent>(OnObstacleDestroyed);
+    }
+    
+    private void OnObstacleDestroyed(ObstacleDestroyedEvent evt)
+    {
+        // Giảm counter khi obstacle bị destroy
+        if (levelData != null && levelData.movementType == MovementType.Path && currentPathObstacleCount > 0)
+        {
+            currentPathObstacleCount--;
         }
     }
     
@@ -116,6 +138,26 @@ public class ObstacleSpawner : MonoBehaviour
             return;
         }
         
+        // Kiểm tra nếu là Path movement
+        PathData currentPath = null;
+        if (levelData.movementType == MovementType.Path && pathData != null)
+        {
+            currentPath = pathData;
+            
+            // Kiểm tra giới hạn spawn cho path
+            if (pathData.maxObstaclesOnPath > 0 && currentPathObstacleCount >= pathData.maxObstaclesOnPath)
+            {
+                Debug.Log($"Đã đạt giới hạn spawn: {currentPathObstacleCount}/{pathData.maxObstaclesOnPath}");
+                return;
+            }
+        }
+        
+        // Spawn 1 obstacle, bắt đầu từ vị trí đầu path (distance = 0)
+        SpawnSingleObstacle(currentPath, 0f);
+    }
+    
+    private void SpawnSingleObstacle(PathData path, float startDistance)
+    {
         // Chọn loại obstacle dựa trên weight từ level data
         ObstacleSpawnInfo spawnInfo = levelData.GetRandomObstacleSpawnInfo();
         if (spawnInfo == null)
@@ -133,8 +175,16 @@ public class ObstacleSpawner : MonoBehaviour
             Obstacle obstacleScript = obstacle.GetComponent<Obstacle>();
             if (obstacleScript != null)
             {
-                // Initialize với scale và splitCount từ spawn info
-                obstacleScript.InitializeWithSplitCount(poolName, spawnInfo.scale, spawnInfo.splitCount);
+                // Tắt rotation nếu là path movement
+                bool enableRotation = path == null ? levelData.enableRotation : false;
+                obstacleScript.InitializeWithSplitCount(poolName, spawnInfo.scale, spawnInfo.splitCount, -1, path, startDistance, enableRotation);
+                
+                // Tăng counter nếu là path movement
+                if (path != null)
+                {
+                    currentPathObstacleCount++;
+                }
+                
                 Debug.Log($"Obstacle initialized with scale: {spawnInfo.scale}, localScale: {obstacle.transform.localScale}");
             }
             else

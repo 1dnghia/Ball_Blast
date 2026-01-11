@@ -20,24 +20,73 @@ public class ObstacleMovement : MonoBehaviour
     private Collider2D col2D;
     private ObstacleData obstacleData;
     
+    // Path movement support
+    private ObstaclePathMovement pathMovement;
+    private bool usePathMovement = false;
+    private bool rotationEnabled = true;
+    
     private void Awake()
     {
         mainCamera = Camera.main;
         rb2D = GetComponent<Rigidbody2D>();
         col2D = GetComponent<Collider2D>();
+        pathMovement = GetComponent<ObstaclePathMovement>();
     }
     
     private void Update()
     {
-        UpdateMovement();
-        RotateVisual();
+        // Nếu dùng path movement thì không update movement bình thường
+        if (!usePathMovement)
+        {
+            UpdateMovement();
+        }
+        
+        // Chỉ rotate nếu enabled
+        if (rotationEnabled)
+        {
+            RotateVisual();
+        }
     }
     
     public void Initialize(ObstacleData data)
     {
+        Initialize(data, null, 0f, true);
+    }
+    
+    public void Initialize(ObstacleData data, PathData pathData)
+    {
+        Initialize(data, pathData, 0f, true);
+    }
+    
+    public void Initialize(ObstacleData data, PathData pathData, float pathStartDistance)
+    {
+        Initialize(data, pathData, pathStartDistance, true);
+    }
+    
+    public void Initialize(ObstacleData data, PathData pathData, float pathStartDistance, bool enableRotation)
+    {
         obstacleData = data;
+        rotationEnabled = enableRotation;
         ResetPhysics();
-        SpawnAtRandomEdge();
+        
+        // Kiểm tra xem có dùng path movement không
+        if (pathData != null && pathData.IsValid() && pathMovement != null)
+        {
+            usePathMovement = true;
+            pathMovement.Initialize(pathData, pathStartDistance);
+            
+            // Tắt physics khi dùng path
+            if (rb2D != null)
+            {
+                rb2D.gravityScale = 0f;
+                rb2D.velocity = Vector2.zero;
+            }
+        }
+        else
+        {
+            usePathMovement = false;
+            SpawnAtRandomEdge();
+        }
     }
     
     public void InitializeAsChild(ObstacleData data, Vector3 position, float launchAngle, float launchForce)
@@ -57,6 +106,10 @@ public class ObstacleMovement : MonoBehaviour
     
     public bool IsOffScreen()
     {
+        // Nếu dùng path movement thì không check off screen
+        if (usePathMovement)
+            return false;
+            
         float screenHeight = mainCamera.orthographicSize * 2f;
         return transform.position.y < -screenHeight / 2f - 2f;
     }
